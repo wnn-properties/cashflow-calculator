@@ -23,12 +23,26 @@ no accounts, no build step, no dependencies. It works offline once loaded.
 ## Student experience
 
 - Entries auto-save in the browser (localStorage) — closing the tab loses nothing.
+- **Copy link** puts a shareable URL on the clipboard that carries the whole
+  analysis — students send one link to their mentor instead of a file. Opening
+  the link fills in every field.
+- **Add to compare** saves the current deal (up to 4); the **Compare Deals** tab
+  shows them side by side with the key metrics, and can load any saved deal back
+  into the calculator.
+- **Deal-quality colors**: cash flow, DSCR, and cash-on-cash show green/amber/red
+  against target thresholds (see `THRESHOLDS` in `index.html`: cash flow ≥ $100/mo
+  good / ≥ $0 acceptable; DSCR ≥ 1.2 / ≥ 1.0; CoC ≥ 8% / ≥ 4%).
+- **Stress Test** panel shows cash flow and DSCR if rent comes in 10% low, the
+  rate is 1% higher, or both — margin-of-safety at a glance.
+- **Gentle input warnings** catch common mistakes (all-in below purchase price,
+  monthly rent that looks like a daily number, taxes entered monthly instead of
+  annual, interest entered as 0.07 instead of 7) without blocking anything.
 - **Clear all entries** resets to a blank calculator (requires a second click to confirm).
 - **Restore defaults** resets only the assumption percentages (10% appreciation,
   8% management, 5% vacancy/maintenance/CapX, 75% LTV, 360 months, 7% rate).
 - **Download scenario / Load scenario** exports and imports a small `.json` file —
   useful for students submitting an analysis or moving between computers.
-- **Print / PDF** produces a clean one-page printout of the current tab.
+- **Print / PDF** produces a clean printout headed by the property address and date.
 
 ## Hosting (pick one — all are free)
 
@@ -54,8 +68,9 @@ Everything is in `index.html`:
 
 - **Default assumptions** — edit the `DEFAULT_ASSUMPTIONS` object near the top of
   the `<script>` block.
-- **Formulas** — the `compute()` function, written in the same order as the
+- **Formulas** — the pure `calc()` function, written in the same order as the
   spreadsheet, with the original cell references noted in comments.
+- **Deal-quality thresholds** — the `THRESHOLDS` object next to `DEFAULT_ASSUMPTIONS`.
 - **Branding** — matched to wnnproperties.com (verified against the WNN Properties
   YouTube channel and Facebook page): Montserrat type (embedded in the file, works
   offline), charcoal `#191C1E` dark theme, sky-blue `#23A9D0` accent, pale-yellow
