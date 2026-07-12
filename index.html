@@ -25,6 +25,7 @@
     --tip-ink:#f4f6f7;
     --shadow:0 1px 2px rgba(16,42,67,.06),0 4px 16px rgba(16,42,67,.05);
     --gold:#fce588; --gold-ink:#102a43;
+    --warn:#9a6b00; --warn-soft:#fdf3d7;
   }
   @media (prefers-color-scheme: dark){
     :root{
@@ -46,6 +47,7 @@
       --tip-ink:#191c1e;
       --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
     --gold:#fce588; --gold-ink:#102a43;
+    --warn:#e2b93d; --warn-soft:#2a2413;
     }
     .logo-card{background:#f4f6f7;}
   }
@@ -56,6 +58,7 @@
     --tip-bg:#f2f5f6; --tip-ink:#191c1e;
     --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
     --gold:#fce588; --gold-ink:#102a43;
+    --warn:#e2b93d; --warn-soft:#2a2413;
   }
   :root[data-theme="dark"] .logo-card{background:#f4f6f7;}
   :root[data-theme="light"]{
@@ -65,6 +68,7 @@
     --tip-bg:#102a43; --tip-ink:#f4f6f7;
     --shadow:0 1px 2px rgba(16,42,67,.06),0 4px 16px rgba(16,42,67,.05);
     --gold:#fce588; --gold-ink:#102a43;
+    --warn:#9a6b00; --warn-soft:#fdf3d7;
   }
   :root[data-theme="light"] .logo-card{background:#ffffff;}
 
@@ -210,7 +214,7 @@
   .foot{color:var(--ink-3);font-size:12.5px;margin-top:22px;line-height:1.6;}
   .foot p{margin:2px 0;}
 
-  #schedulePanel .card{padding:0;overflow:hidden;}
+  #schedulePanel .card,#comparePanel .card{padding:0;overflow:hidden;}
   .sched-head{display:flex;gap:20px;flex-wrap:wrap;padding:16px 20px;border-bottom:1px solid var(--line);}
   .sched-head .kv{display:flex;flex-direction:column;}
   .sched-head .kv .k{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;}
@@ -229,9 +233,43 @@
 
   .hidden{display:none !important;}
 
+  .hint{
+    margin:2px 0 6px;padding:6px 10px;border-radius:6px;
+    border-left:3px solid var(--warn);background:var(--warn-soft);
+    color:var(--ink-2);font-size:12.5px;
+  }
+  .b-good{color:var(--good);}
+  .b-ok{color:var(--warn);}
+  .b-bad{color:var(--bad);}
+  .print-head{display:none;}
+
+  table.stress{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:13.5px;}
+  table.stress th{
+    text-align:right;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--ink-3);padding:4px 8px 6px;border-bottom:1.5px solid var(--line);
+  }
+  table.stress th:first-child{text-align:left;padding-left:0;}
+  table.stress td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap;font-weight:600;}
+  table.stress td:first-child{text-align:left;color:var(--ink-2);padding-left:0;font-weight:400;}
+  table.stress tr:last-child td{border-bottom:none;}
+
+  table.comp{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:13.5px;min-width:540px;}
+  table.comp th{text-align:right;padding:14px;border-bottom:1.5px solid var(--line);font-size:13.5px;vertical-align:top;white-space:nowrap;}
+  table.comp th.metric,table.comp td.metric{text-align:left;color:var(--ink-2);padding-left:20px;white-space:normal;}
+  table.comp td{padding:7px 14px;text-align:right;border-bottom:1px solid var(--line-soft);white-space:nowrap;}
+  table.comp tr:last-child td{border-bottom:none;}
+  .comp-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:7px;}
+  .comp-actions button{font-size:11.5px;padding:3px 9px;font-weight:500;}
+  .comp-empty{padding:28px 20px;color:var(--ink-3);text-align:center;white-space:normal;}
+  .comp-head{padding:14px 20px;border-bottom:1px solid var(--line);color:var(--ink-2);font-size:13.5px;}
+  .comp-head p{margin:0;}
+
   @media print{
     body{background:#fff;color:#000;}
-    .toolbar,nav.tabs,.tip,.announce{display:none !important;}
+    .toolbar,nav.tabs,.tip,.announce,.hint{display:none !important;}
+    .print-head{display:block;margin-bottom:16px;border-bottom:2px solid #333;padding-bottom:10px;}
+    .print-head .ph-title{font-size:21px;font-weight:700;}
+    .print-head .ph-sub{font-size:12.5px;color:#555;margin-top:2px;}
     section.card,.verdict{box-shadow:none;break-inside:avoid;}
     .table-scroll{max-height:none;overflow:visible;}
     .wrap{padding:0;}
@@ -253,6 +291,8 @@
     </div>
     <div class="grow"></div>
     <div class="toolbar">
+      <button id="btnShare" type="button">Copy link</button>
+      <button id="btnCompare" type="button">Add to compare</button>
       <button id="btnPrint" type="button">Print / PDF</button>
       <button id="btnExport" type="button">Download scenario</button>
       <button id="btnImport" type="button">Load scenario</button>
@@ -264,9 +304,14 @@
   <nav class="tabs" role="tablist">
     <button role="tab" id="tabCalc" aria-selected="true" aria-controls="calcPanel" type="button">Calculator</button>
     <button role="tab" id="tabSched" aria-selected="false" aria-controls="schedulePanel" type="button">Mortgage Schedule</button>
+    <button role="tab" id="tabComp" aria-selected="false" aria-controls="comparePanel" type="button">Compare Deals</button>
   </nav>
 
   <div id="calcPanel" role="tabpanel" aria-labelledby="tabCalc">
+    <div class="print-head">
+      <div class="ph-title" id="ph_addr"></div>
+      <div class="ph-sub">WNN Properties Cashflow Analysis &mdash; prepared <span id="ph_date"></span></div>
+    </div>
     <div class="verdict" id="verdict">
       <div class="big"><span class="num" id="vCashflow">&mdash;</span><span class="cap">Cash flow after reserves / mo</span></div>
       <div class="divider"></div>
@@ -299,6 +344,7 @@
             <span class="tip" tabindex="0" data-tip="Input the total costs when funding in all cash (or PML). This is NOT for scenarios utilizing financing options for the purchase and rehab.">i</span>
             <span class="field has-prefix"><span class="prefix">$</span><input id="in_allin" type="number" min="0" step="1000"></span>
           </div>
+          <div class="hint hidden" id="w_allin"></div>
         </section>
 
         <section class="card">
@@ -308,6 +354,7 @@
             <span class="field has-prefix"><span class="prefix">$</span><input id="in_rent" type="number" min="0" step="25"></span>
             <span class="val" id="o_rent_a"></span>
           </div>
+          <div class="hint hidden" id="w_rent"></div>
           <div class="row">
             <span class="lbl">Vacancy Losses</span>
             <span class="val neg" id="o_vac_m"></span><span class="val neg" id="o_vac_a"></span>
@@ -325,6 +372,7 @@
             <span class="val" id="o_tax_m"></span>
             <span class="field has-prefix"><span class="prefix">$</span><input id="in_tax_a" type="number" min="0" step="50"></span>
           </div>
+          <div class="hint hidden" id="w_tax"></div>
           <div class="row">
             <span class="lbl">Insurance</span>
             <span class="val" id="o_ins_m"></span>
@@ -430,6 +478,16 @@
         </section>
 
         <section class="card">
+          <h2>Stress Test</h2>
+          <div class="table-scroll">
+            <table class="stress">
+              <thead><tr><th>Scenario</th><th>Cash Flow / mo</th><th>DSCR</th></tr></thead>
+              <tbody id="stressBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card">
           <h2>Mortgage Information</h2>
           <div class="row">
             <span class="lbl">Loan to Value</span>
@@ -451,6 +509,7 @@
             <span class="lbl">Interest Rate</span>
             <span class="field has-unit"><input id="in_rate" type="number" min="0" max="30" step="0.125"><span class="unit">%</span></span>
           </div>
+          <div class="hint hidden" id="w_rate"></div>
           <div class="row total">
             <span class="lbl">Mortgage Payment (P+I)</span>
             <span class="val" id="o_pmt2"></span>
@@ -510,6 +569,17 @@
       </div>
     </section>
   </div>
+
+  <div id="comparePanel" role="tabpanel" aria-labelledby="tabComp" class="hidden">
+    <section class="card">
+      <div class="comp-head">
+        <p>Save deals from the Calculator tab with <strong>Add to compare</strong> (up to 4), then weigh them side by side. <strong>Open</strong> loads a saved deal back into the calculator.</p>
+      </div>
+      <div class="table-scroll">
+        <table class="comp" id="compTable"></table>
+      </div>
+    </section>
+  </div>
 </div>
 
 <script>
@@ -520,15 +590,29 @@
     appr: 10, mgmt: 8, vac: 5, maint: 5, capx: 5,
     ltv: 75, term: 360, rate: 7
   };
+  // Deal-quality targets shown as green/amber/red. Edit these in one place.
+  var THRESHOLDS = {
+    cashflowM: {ok: 0,    good: 100},   // monthly cash flow after reserves, $
+    dscr:      {ok: 1.0,  good: 1.2},   // debt service coverage ratio
+    coc:       {ok: 0.04, good: 0.08}   // cash-on-cash return (downpayment)
+  };
   var TEXT_FIELDS = ["city","street","ptype","year","sqft","beds","baths"];
   var MONEY_FIELDS = ["price","allin","rent","tax_a","ins_a","hoa"];
   var ASSUMPTION_FIELDS = ["appr","mgmt","vac","maint","capx","ltv","term","rate"];
+  var ALL_FIELDS = TEXT_FIELDS.concat(MONEY_FIELDS, ASSUMPTION_FIELDS);
   var STORE_KEY = "wnn-cashflow-v1";
+  var COMP_KEY = "wnn-compare-v1";
 
   function $(id){ return document.getElementById(id); }
-  function num(id){
-    var v = parseFloat($("in_" + id).value);
+  function parseNum(x){
+    var v = parseFloat(x);
     return isFinite(v) ? v : 0;
+  }
+  function num(id){ return parseNum($("in_" + id).value); }
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, function(m){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m];
+    });
   }
 
   var moneyFmt = new Intl.NumberFormat("en-US", {style:"currency", currency:"USD", maximumFractionDigits:0});
@@ -536,13 +620,18 @@
   function money(v){ return moneyFmt.format(Math.round(v) === 0 ? 0 : v); }
   function cents(v){ return centsFmt.format(v); }
   function pct(v){ return (v*100).toFixed(1) + "%"; }
+  function bandClass(v, t){
+    if (!isFinite(v)) return "";
+    return v >= t.good ? "b-good" : v >= t.ok ? "b-ok" : "b-bad";
+  }
 
   function setVal(id, v, opts){
     opts = opts || {};
     var el = $(id);
     el.textContent = opts.text !== undefined ? opts.text : money(v);
-    el.classList.remove("neg","pos");
-    if (opts.signal){
+    el.classList.remove("neg","pos","b-good","b-ok","b-bad");
+    if (opts.band) el.classList.add(opts.band);
+    else if (opts.signal){
       if (v < -0.005) el.classList.add("neg");
       else if (v > 0.005 && opts.signal === "both") el.classList.add("pos");
     }
@@ -556,115 +645,177 @@
     return pv * monthlyRate * f / (f - 1);
   }
 
-  function compute(){
-    var price = num("price"), allin = num("allin"), rent = num("rent");
-    var taxA = num("tax_a"), insA = num("ins_a"), hoaM = num("hoa");
-    var appr = num("appr")/100, mgmt = num("mgmt")/100, vac = num("vac")/100;
-    var maint = num("maint")/100, capx = num("capx")/100, ltv = num("ltv")/100;
-    var term = Math.max(0, Math.round(num("term"))), rate = num("rate")/100;
+  // --- pure calculation (mirrors the spreadsheet; cell refs in comments) ---
+  function gatherFrom(g){
+    return {
+      price: parseNum(g("price")), allin: parseNum(g("allin")), rent: parseNum(g("rent")),
+      taxA: parseNum(g("tax_a")), insA: parseNum(g("ins_a")), hoaM: parseNum(g("hoa")),
+      appr: parseNum(g("appr"))/100, mgmt: parseNum(g("mgmt"))/100, vac: parseNum(g("vac"))/100,
+      maint: parseNum(g("maint"))/100, capx: parseNum(g("capx"))/100, ltv: parseNum(g("ltv"))/100,
+      term: Math.max(0, Math.round(parseNum(g("term")))), rate: parseNum(g("rate"))/100
+    };
+  }
+  function gather(){ return gatherFrom(function(f){ return $("in_" + f).value; }); }
+  function withOverrides(v, o){
+    var c = {}, k;
+    for (k in v) c[k] = v[k];
+    for (k in o) c[k] = o[k];
+    return c;
+  }
 
-    var vacM = rent * vac;
-    var opIncM = rent - vacM;
-    var taxM = taxA/12, insM = insA/12;
-    var mgmtM = rent * mgmt, maintM = rent * maint, capxM = rent * capx;
-    var opExM = taxM + insM + mgmtM + hoaM + maintM + capxM;
-    var noiM = opIncM - opExM;
+  function calc(v, withSchedule){
+    var vacM = v.rent * v.vac;                       // B16
+    var opIncM = v.rent - vacM;                      // B17
+    var taxM = v.taxA/12, insM = v.insA/12;          // B20, B21
+    var mgmtM = v.rent * v.mgmt;                     // B22
+    var maintM = v.rent * v.maint;                   // B24
+    var capxM = v.rent * v.capx;                     // B25
+    var opExM = taxM + insM + mgmtM + v.hoaM + maintM + capxM;  // B27
+    var noiM = opIncM - opExM;                       // B30
 
-    var loan = price * ltv;
-    var down = price - loan;
-    var pmtM = pmt(rate/12, term, loan);
+    var loan = v.price * v.ltv;                      // G31
+    var down = v.price - loan;                       // G30
+    var pmtM = pmt(v.rate/12, v.term, loan);         // G34
 
-    var resvM = rent * (vac + maint + capx);
-    var cfAfterM = noiM - pmtM;            // Cash Flow after reserves
-    var cfBeforeM = resvM + cfAfterM;      // Actual Cash Flow (before reserves)
+    var resvM = v.rent * (v.vac + v.maint + v.capx); // B32
+    var cfAfterM = noiM - pmtM;                      // B34
+    var cfBeforeM = resvM + cfAfterM;                // B33
 
-    // Amortization + first-12-payments principal reduction
     var bal = loan, pr12 = 0, totInt = 0;
-    var rows = [];
-    for (var i = 1; i <= term && loan > 0; i++){
-      var interest = bal * rate/12;
+    var rows = withSchedule ? [] : null;
+    for (var i = 1; i <= v.term && loan > 0; i++){
+      var interest = bal * v.rate/12;
       var principal = pmtM - interest;
       bal -= principal;
       totInt += interest;
-      rows.push([i, pmtM, interest, principal, bal, loan - bal]);
-      if (i === 12) pr12 = loan - bal;
+      if (rows) rows.push([i, pmtM, interest, principal, bal, loan - bal]);
+      if (i === 12) pr12 = loan - bal;               // C35 ('Mortgage schedule'!F14)
     }
-    if (term > 0 && term < 12 && rows.length) pr12 = loan - bal;
+    if (v.term > 0 && v.term < 12 && loan > 0) pr12 = loan - bal;
 
-    var apprA = price * appr;
-    var geiM = cfBeforeM + apprA/12 + pr12/12;
-    var geiA = cfBeforeM*12 + apprA + pr12;
-    var cashLeftIn = allin - loan;         // Excel B38 = -cashLeftIn
+    var apprA = v.price * v.appr;                    // C36
+    var geiA = cfBeforeM*12 + apprA + pr12;          // C37
+    var geiM = cfBeforeM + apprA/12 + pr12/12;       // B37
+    var cashLeftIn = v.allin - loan;                 // -B38
+
+    var dscr = pmtM > 0 ? noiM/pmtM : NaN;           // G15
+    var cocDp = down > 0 ? (cfBeforeM*12)/down : NaN;// G16
+    var infinite = cashLeftIn <= 0;
+    var cocLi = cfBeforeM*12 / cashLeftIn;           // G17
+    var roiDp = down > 0 ? geiA/down : NaN;          // G18
+    var roiLi = geiA / cashLeftIn;                   // G19
+    var payback = cashLeftIn / (cfBeforeM*12);       // G20
+
+    return {
+      vacM:vacM, opIncM:opIncM, taxM:taxM, insM:insM, mgmtM:mgmtM, maintM:maintM,
+      capxM:capxM, opExM:opExM, noiM:noiM, loan:loan, down:down, pmtM:pmtM,
+      resvM:resvM, cfAfterM:cfAfterM, cfBeforeM:cfBeforeM, pr12:pr12, totInt:totInt,
+      rows:rows, apprA:apprA, geiA:geiA, geiM:geiM, cashLeftIn:cashLeftIn,
+      dscr:dscr, cocDp:cocDp, cocLi:cocLi, roiDp:roiDp, roiLi:roiLi,
+      payback:payback, infinite:infinite
+    };
+  }
+  function dscrText(r){ return isFinite(r.dscr) ? r.dscr.toFixed(2) : "—"; }
+  function paybackText(r){
+    if (r.infinite) return "Returned";
+    if (!isFinite(r.payback) || r.payback < 0) return "—";
+    return r.payback.toFixed(1) + " yrs";
+  }
+
+  var WARNINGS = [
+    {id:"w_allin", test:function(v){ return v.allin > 0 && v.price > 0 && v.allin < v.price; },
+     msg:"All-in costs (purchase + rehab) are usually at least the purchase price — double-check both fields."},
+    {id:"w_rent", test:function(v){ return v.rent > 0 && v.rent < 100; },
+     msg:"That looks low for a monthly rent — this field is per month."},
+    {id:"w_tax", test:function(v){ return v.taxA > 0 && v.taxA < 400; },
+     msg:"Property taxes here are per YEAR — double-check if you entered a monthly amount."},
+    {id:"w_rate", test:function(v){ return v.rate > 0 && v.rate < 0.01; },
+     msg:"Enter the rate as a whole number: 7 means 7%."}
+  ];
+
+  function compute(){
+    var v = gather();
+    var r = calc(v, true);
 
     // Income & expenses
-    setVal("o_rent_a", rent*12);
-    setVal("o_vac_m", vacM, {text: vacM ? "(" + money(vacM) + ")" : money(0)});
-    setVal("o_vac_a", vacM*12, {text: vacM ? "(" + money(vacM*12) + ")" : money(0)});
-    setVal("o_opinc_m", opIncM); setVal("o_opinc_a", opIncM*12);
-    setVal("o_tax_m", taxM); setVal("o_ins_m", insM);
-    setVal("o_mgmt_m", mgmtM); setVal("o_mgmt_a", mgmtM*12);
-    setVal("o_hoa_a", hoaM*12);
-    setVal("o_maint_m", maintM); setVal("o_maint_a", maintM*12);
-    setVal("o_capx_m", capxM); setVal("o_capx_a", capxM*12);
-    setVal("o_opex_m", opExM); setVal("o_opex_a", opExM*12);
+    setVal("o_rent_a", v.rent*12);
+    setVal("o_vac_m", r.vacM, {text: r.vacM ? "(" + money(r.vacM) + ")" : money(0)});
+    setVal("o_vac_a", r.vacM*12, {text: r.vacM ? "(" + money(r.vacM*12) + ")" : money(0)});
+    setVal("o_opinc_m", r.opIncM); setVal("o_opinc_a", r.opIncM*12);
+    setVal("o_tax_m", r.taxM); setVal("o_ins_m", r.insM);
+    setVal("o_mgmt_m", r.mgmtM); setVal("o_mgmt_a", r.mgmtM*12);
+    setVal("o_hoa_a", v.hoaM*12);
+    setVal("o_maint_m", r.maintM); setVal("o_maint_a", r.maintM*12);
+    setVal("o_capx_m", r.capxM); setVal("o_capx_a", r.capxM*12);
+    setVal("o_opex_m", r.opExM); setVal("o_opex_a", r.opExM*12);
 
     // Net performance
-    setVal("o_noi_m", noiM, {signal:"neg"}); setVal("o_noi_a", noiM*12, {signal:"neg"});
-    setVal("o_pmt_m", pmtM); setVal("o_pmt_a", pmtM*12);
-    setVal("o_resv_m", resvM); setVal("o_resv_a", resvM*12);
-    setVal("o_cfb_m", cfBeforeM, {signal:"both"}); setVal("o_cfb_a", cfBeforeM*12, {signal:"both"});
-    setVal("o_cfa_m", cfAfterM, {signal:"both"}); setVal("o_cfa_a", cfAfterM*12, {signal:"both"});
-    setVal("o_pr_m", pr12/12); setVal("o_pr_a", pr12);
-    setVal("o_appr_m", apprA/12); setVal("o_appr_a", apprA);
-    setVal("o_gei_m", geiM, {signal:"both"}); setVal("o_gei_a", geiA, {signal:"both"});
-    setVal("o_cashin", -cashLeftIn, {signal:"neg"});
+    setVal("o_noi_m", r.noiM, {signal:"neg"}); setVal("o_noi_a", r.noiM*12, {signal:"neg"});
+    setVal("o_pmt_m", r.pmtM); setVal("o_pmt_a", r.pmtM*12);
+    setVal("o_resv_m", r.resvM); setVal("o_resv_a", r.resvM*12);
+    setVal("o_cfb_m", r.cfBeforeM, {signal:"both"}); setVal("o_cfb_a", r.cfBeforeM*12, {signal:"both"});
+    var cfBand = bandClass(r.cfAfterM, THRESHOLDS.cashflowM);
+    setVal("o_cfa_m", r.cfAfterM, {band: cfBand}); setVal("o_cfa_a", r.cfAfterM*12, {band: cfBand});
+    setVal("o_pr_m", r.pr12/12); setVal("o_pr_a", r.pr12);
+    setVal("o_appr_m", r.apprA/12); setVal("o_appr_a", r.apprA);
+    setVal("o_gei_m", r.geiM, {signal:"both"}); setVal("o_gei_a", r.geiA, {signal:"both"});
+    setVal("o_cashin", -r.cashLeftIn, {signal:"neg"});
 
     // Mortgage info
-    setVal("o_down", down); setVal("o_loan", loan);
-    setVal("o_pmt2", pmtM, {text: cents(pmtM)});
+    setVal("o_down", r.down); setVal("o_loan", r.loan);
+    setVal("o_pmt2", r.pmtM, {text: cents(r.pmtM)});
 
-    // Indicators (infinity rules from the workbook's notes)
-    var dscr = pmtM > 0 ? noiM/pmtM : NaN;
-    setVal("o_dscr", 0, {text: isFinite(dscr) ? dscr.toFixed(2) : "—"});
-
-    var cocDp = down > 0 ? (cfBeforeM*12)/down : NaN;
-    setVal("o_coc_dp", 0, {text: isFinite(cocDp) ? pct(cocDp) : "—"});
-    $("vCoC").textContent = isFinite(cocDp) ? pct(cocDp) : "—";
-
-    var infinite = cashLeftIn <= 0;
-    var cocLi = cfBeforeM*12 / cashLeftIn;
-    setVal("o_coc_li", 0, {text: infinite || !isFinite(cocLi) || cocLi < 0 ? "∞" : pct(cocLi)});
-
-    var roiDp = down > 0 ? geiA/down : NaN;
-    setVal("o_roi_dp", 0, {text: isFinite(roiDp) ? pct(roiDp) : "—"});
-
-    var roiLi = geiA / cashLeftIn;
-    setVal("o_roi_li", 0, {text: infinite || !isFinite(roiLi) || roiLi < 0 ? "∞" : pct(roiLi)});
-
-    var payback = cashLeftIn / (cfBeforeM*12);
-    var paybackText;
-    if (infinite) paybackText = "Returned";
-    else if (!isFinite(payback) || payback < 0) paybackText = "—";
-    else paybackText = payback.toFixed(1) + " yrs";
-    setVal("o_payback", 0, {text: paybackText});
+    // Indicators
+    setVal("o_dscr", 0, {text: dscrText(r), band: bandClass(r.dscr, THRESHOLDS.dscr)});
+    setVal("o_coc_dp", 0, {text: isFinite(r.cocDp) ? pct(r.cocDp) : "—", band: bandClass(r.cocDp, THRESHOLDS.coc)});
+    setVal("o_coc_li", 0, {text: r.infinite || !isFinite(r.cocLi) || r.cocLi < 0 ? "∞" : pct(r.cocLi)});
+    setVal("o_roi_dp", 0, {text: isFinite(r.roiDp) ? pct(r.roiDp) : "—"});
+    setVal("o_roi_li", 0, {text: r.infinite || !isFinite(r.roiLi) || r.roiLi < 0 ? "∞" : pct(r.roiLi)});
+    setVal("o_payback", 0, {text: paybackText(r)});
 
     // Verdict strip
-    var vc = $("vCashflow");
-    vc.textContent = money(cfAfterM);
-    vc.classList.toggle("neg", cfAfterM < -0.005);
-    vc.classList.toggle("pos", cfAfterM > 0.005);
-    $("vDSCR").textContent = isFinite(dscr) ? dscr.toFixed(2) : "—";
-    $("vPayment").textContent = cents(pmtM);
+    setVal("vCashflow", r.cfAfterM, {band: cfBand});
+    setVal("vDSCR", 0, {text: dscrText(r), band: bandClass(r.dscr, THRESHOLDS.dscr)});
+    setVal("vCoC", 0, {text: isFinite(r.cocDp) ? pct(r.cocDp) : "—", band: bandClass(r.cocDp, THRESHOLDS.coc)});
+    setVal("vPayment", 0, {text: cents(r.pmtM)});
+
+    // Input warnings
+    WARNINGS.forEach(function(w){
+      var el = $(w.id);
+      var on = w.test(v);
+      el.classList.toggle("hidden", !on);
+      el.textContent = on ? w.msg : "";
+    });
+
+    // Print header
+    var street = $("in_street").value.trim(), city = $("in_city").value.trim();
+    var addr = [street, city].filter(Boolean).join(", ");
+    $("ph_addr").textContent = addr || "Rental Property Analysis";
+    $("ph_date").textContent = new Date().toLocaleDateString("en-US", {year:"numeric", month:"long", day:"numeric"});
+
+    // Stress test
+    var scenarios = [
+      ["Base case", v],
+      ["Rent −10%", withOverrides(v, {rent: v.rent*0.9})],
+      ["Rate +1%", withOverrides(v, {rate: v.rate+0.01})],
+      ["Rent −10% and rate +1%", withOverrides(v, {rent: v.rent*0.9, rate: v.rate+0.01})]
+    ];
+    $("stressBody").innerHTML = scenarios.map(function(s){
+      var sr = calc(s[1], false);
+      return "<tr><td>" + s[0] + "</td><td class=\"" + bandClass(sr.cfAfterM, THRESHOLDS.cashflowM) + "\">" +
+        cents(sr.cfAfterM) + "</td><td class=\"" + bandClass(sr.dscr, THRESHOLDS.dscr) + "\">" +
+        dscrText(sr) + "</td></tr>";
+    }).join("");
 
     // Schedule
-    $("s_loan").textContent = money(loan);
-    $("s_rate").textContent = (rate*100).toFixed(3).replace(/\.?0+$/,"") + "%";
-    $("s_term").textContent = term + " mo (" + (term/12).toFixed(term % 12 ? 1 : 0) + " yrs)";
-    $("s_pmt").textContent = cents(pmtM);
-    $("s_totint").textContent = money(totInt);
+    $("s_loan").textContent = money(r.loan);
+    $("s_rate").textContent = (v.rate*100).toFixed(3).replace(/\.?0+$/,"") + "%";
+    $("s_term").textContent = v.term + " mo (" + (v.term/12).toFixed(v.term % 12 ? 1 : 0) + " yrs)";
+    $("s_pmt").textContent = cents(r.pmtM);
+    $("s_totint").textContent = money(r.totInt);
     var html = "";
-    for (var r = 0; r < rows.length; r++){
-      var row = rows[r];
+    for (var i = 0; i < r.rows.length; i++){
+      var row = r.rows[i];
       html += "<tr" + (row[0] % 12 === 0 ? " class=\"year-end\"" : "") + "><td>" + row[0] + "</td><td>" +
         cents(row[1]) + "</td><td>" + cents(row[2]) + "</td><td>" + cents(row[3]) + "</td><td>" +
         cents(Math.max(0,row[4])) + "</td><td>" + cents(row[5]) + "</td></tr>";
@@ -675,9 +826,7 @@
   // --- persistence ---
   function snapshot(){
     var s = {};
-    TEXT_FIELDS.concat(MONEY_FIELDS, ASSUMPTION_FIELDS).forEach(function(f){
-      s[f] = $("in_" + f).value;
-    });
+    ALL_FIELDS.forEach(function(f){ s[f] = $("in_" + f).value; });
     return s;
   }
   function save(){
@@ -685,7 +834,7 @@
   }
   function apply(s){
     if (!s) return;
-    TEXT_FIELDS.concat(MONEY_FIELDS, ASSUMPTION_FIELDS).forEach(function(f){
+    ALL_FIELDS.forEach(function(f){
       if (s[f] !== undefined && s[f] !== null) $("in_" + f).value = s[f];
     });
   }
@@ -697,6 +846,97 @@
     if (!onlyAssumptions){
       TEXT_FIELDS.concat(MONEY_FIELDS).forEach(function(f){ $("in_" + f).value = ""; });
     }
+  }
+
+  // --- shareable links ---
+  function shareURL(){
+    var s = snapshot(), p = new URLSearchParams();
+    ALL_FIELDS.forEach(function(f){
+      if (s[f] !== "" && s[f] !== null && s[f] !== undefined) p.set(f, s[f]);
+    });
+    return location.origin + location.pathname + "#" + p.toString();
+  }
+  function applyHash(){
+    if (!location.hash || location.hash.length < 2) return false;
+    try {
+      var p = new URLSearchParams(location.hash.slice(1));
+      var s = {}, found = false;
+      ALL_FIELDS.forEach(function(f){
+        if (p.has(f)){ s[f] = p.get(f); found = true; }
+      });
+      if (found){
+        setDefaults(false);
+        apply(s);
+        history.replaceState(null, "", location.pathname + location.search);
+      }
+      return found;
+    } catch(e){ return false; }
+  }
+  function copyText(txt, btn, okLabel){
+    function done(){ flashBtn(btn, okLabel); }
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(done, function(){ legacyCopy(txt); done(); });
+    } else { legacyCopy(txt); done(); }
+  }
+  function legacyCopy(txt){
+    var ta = document.createElement("textarea");
+    ta.value = txt;
+    ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); } catch(e){}
+    ta.remove();
+  }
+  function flashBtn(btn, txt){
+    var orig = btn.dataset.label || btn.textContent;
+    btn.dataset.label = orig;
+    btn.textContent = txt;
+    setTimeout(function(){ btn.textContent = orig; }, 1600);
+  }
+
+  // --- compare deals ---
+  function compList(){
+    try { return JSON.parse(localStorage.getItem(COMP_KEY) || "[]") || []; } catch(e){ return []; }
+  }
+  function compSave(list){
+    try { localStorage.setItem(COMP_KEY, JSON.stringify(list)); } catch(e){}
+  }
+  var COMP_METRICS = [
+    ["Purchase price",                    function(r,v){ return {t: money(v.price)}; }],
+    ["All-in costs",                      function(r,v){ return {t: money(v.allin)}; }],
+    ["Gross rent / mo",                   function(r,v){ return {t: money(v.rent)}; }],
+    ["NOI / mo",                          function(r,v){ return {t: money(r.noiM)}; }],
+    ["Mortgage P+I / mo",                 function(r,v){ return {t: cents(r.pmtM)}; }],
+    ["Cash flow after reserves / mo",     function(r,v){ return {t: money(r.cfAfterM), c: bandClass(r.cfAfterM, THRESHOLDS.cashflowM)}; }],
+    ["DSCR",                              function(r,v){ return {t: dscrText(r), c: bandClass(r.dscr, THRESHOLDS.dscr)}; }],
+    ["Cash-on-cash (downpayment)",        function(r,v){ return {t: isFinite(r.cocDp) ? pct(r.cocDp) : "—", c: bandClass(r.cocDp, THRESHOLDS.coc)}; }],
+    ["ROI (downpayment)",                 function(r,v){ return {t: isFinite(r.roiDp) ? pct(r.roiDp) : "—"}; }],
+    ["Time before return of investment",  function(r,v){ return {t: paybackText(r)}; }],
+    ["Cash left in / downpayment",        function(r,v){ return {t: money(-r.cashLeftIn)}; }]
+  ];
+  function renderCompare(){
+    var list = compList();
+    var table = $("compTable");
+    if (!list.length){
+      table.innerHTML = "<tbody><tr><td class=\"comp-empty\">No saved deals yet. On the Calculator tab, fill in a deal and click <strong>Add to compare</strong>.</td></tr></tbody>";
+      return;
+    }
+    var head = "<thead><tr><th class=\"metric\"></th>" + list.map(function(d, i){
+      return "<th>" + esc(d.name) +
+        "<div class=\"comp-actions\"><button type=\"button\" data-act=\"load\" data-i=\"" + i + "\">Open</button>" +
+        "<button type=\"button\" data-act=\"rm\" data-i=\"" + i + "\">Remove</button></div></th>";
+    }).join("") + "</tr></thead>";
+    var results = list.map(function(d){
+      var v = gatherFrom(function(f){ return d.snap[f] || ""; });
+      return {v: v, r: calc(v, false)};
+    });
+    var body = "<tbody>" + COMP_METRICS.map(function(m){
+      return "<tr><td class=\"metric\">" + m[0] + "</td>" + results.map(function(x){
+        var cell = m[1](x.r, x.v);
+        return "<td" + (cell.c ? " class=\"" + cell.c + "\"" : "") + ">" + cell.t + "</td>";
+      }).join("") + "</tr>";
+    }).join("") + "</tbody>";
+    table.innerHTML = head + body;
   }
 
   // --- wire up ---
@@ -726,7 +966,41 @@
     }
   });
 
-  $("btnPrint").addEventListener("click", function(){ window.print(); });
+  $("btnPrint").addEventListener("click", function(){ compute(); window.print(); });
+  window.addEventListener("beforeprint", compute);
+
+  $("btnShare").addEventListener("click", function(){
+    copyText(shareURL(), $("btnShare"), "Link copied ✓");
+  });
+
+  $("btnCompare").addEventListener("click", function(){
+    var s = snapshot();
+    var name = (s.street || s.city || "").trim() || ("Deal " + (compList().length + 1));
+    var list = compList();
+    list.push({name: name, snap: s});
+    if (list.length > 4) list = list.slice(-4);
+    compSave(list);
+    renderCompare();
+    flashBtn($("btnCompare"), "Added ✓");
+  });
+
+  $("comparePanel").addEventListener("click", function(e){
+    var btn = e.target.closest("button[data-act]");
+    if (!btn) return;
+    var i = parseInt(btn.dataset.i, 10);
+    var list = compList();
+    if (!(i >= 0 && i < list.length)) return;
+    if (btn.dataset.act === "rm"){
+      list.splice(i, 1);
+      compSave(list);
+      renderCompare();
+    } else if (btn.dataset.act === "load"){
+      setDefaults(false);
+      apply(list[i].snap);
+      compute(); save();
+      selectTab("calc");
+    }
+  });
 
   $("btnExport").addEventListener("click", function(){
     var s = snapshot();
@@ -756,20 +1030,24 @@
   });
 
   // Tabs
+  var TABS = {calc: "calcPanel", sched: "schedulePanel", comp: "comparePanel"};
+  var TAB_BTNS = {calc: "tabCalc", sched: "tabSched", comp: "tabComp"};
   function selectTab(which){
-    var calc = which === "calc";
-    $("tabCalc").setAttribute("aria-selected", calc ? "true" : "false");
-    $("tabSched").setAttribute("aria-selected", calc ? "false" : "true");
-    $("calcPanel").classList.toggle("hidden", !calc);
-    $("schedulePanel").classList.toggle("hidden", calc);
+    Object.keys(TABS).forEach(function(k){
+      $(TAB_BTNS[k]).setAttribute("aria-selected", k === which ? "true" : "false");
+      $(TABS[k]).classList.toggle("hidden", k !== which);
+    });
   }
   $("tabCalc").addEventListener("click", function(){ selectTab("calc"); });
   $("tabSched").addEventListener("click", function(){ selectTab("sched"); });
+  $("tabComp").addEventListener("click", function(){ selectTab("comp"); renderCompare(); });
 
   // init
   setDefaults(false);
   load();
+  if (applyHash()) save();
   compute();
+  renderCompare();
 })();
 </script>
 
