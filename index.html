@@ -238,9 +238,6 @@
     border-left:3px solid var(--warn);background:var(--warn-soft);
     color:var(--ink-2);font-size:12.5px;
   }
-  .b-good{color:var(--good);}
-  .b-ok{color:var(--warn);}
-  .b-bad{color:var(--bad);}
   .print-head{display:none;}
 
   table.stress{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:13.5px;}
@@ -590,12 +587,6 @@
     appr: 10, mgmt: 8, vac: 5, maint: 5, capx: 5,
     ltv: 75, term: 360, rate: 7
   };
-  // Deal-quality targets shown as green/amber/red. Edit these in one place.
-  var THRESHOLDS = {
-    cashflowM: {ok: 0,    good: 100},   // monthly cash flow after reserves, $
-    dscr:      {ok: 1.0,  good: 1.2},   // debt service coverage ratio
-    coc:       {ok: 0.04, good: 0.08}   // cash-on-cash return (downpayment)
-  };
   var TEXT_FIELDS = ["city","street","ptype","year","sqft","beds","baths"];
   var MONEY_FIELDS = ["price","allin","rent","tax_a","ins_a","hoa"];
   var ASSUMPTION_FIELDS = ["appr","mgmt","vac","maint","capx","ltv","term","rate"];
@@ -620,18 +611,13 @@
   function money(v){ return moneyFmt.format(Math.round(v) === 0 ? 0 : v); }
   function cents(v){ return centsFmt.format(v); }
   function pct(v){ return (v*100).toFixed(1) + "%"; }
-  function bandClass(v, t){
-    if (!isFinite(v)) return "";
-    return v >= t.good ? "b-good" : v >= t.ok ? "b-ok" : "b-bad";
-  }
 
   function setVal(id, v, opts){
     opts = opts || {};
     var el = $(id);
     el.textContent = opts.text !== undefined ? opts.text : money(v);
-    el.classList.remove("neg","pos","b-good","b-ok","b-bad");
-    if (opts.band) el.classList.add(opts.band);
-    else if (opts.signal){
+    el.classList.remove("neg","pos");
+    if (opts.signal){
       if (v < -0.005) el.classList.add("neg");
       else if (v > 0.005 && opts.signal === "both") el.classList.add("pos");
     }
@@ -754,8 +740,7 @@
     setVal("o_pmt_m", r.pmtM); setVal("o_pmt_a", r.pmtM*12);
     setVal("o_resv_m", r.resvM); setVal("o_resv_a", r.resvM*12);
     setVal("o_cfb_m", r.cfBeforeM, {signal:"both"}); setVal("o_cfb_a", r.cfBeforeM*12, {signal:"both"});
-    var cfBand = bandClass(r.cfAfterM, THRESHOLDS.cashflowM);
-    setVal("o_cfa_m", r.cfAfterM, {band: cfBand}); setVal("o_cfa_a", r.cfAfterM*12, {band: cfBand});
+    setVal("o_cfa_m", r.cfAfterM, {signal:"both"}); setVal("o_cfa_a", r.cfAfterM*12, {signal:"both"});
     setVal("o_pr_m", r.pr12/12); setVal("o_pr_a", r.pr12);
     setVal("o_appr_m", r.apprA/12); setVal("o_appr_a", r.apprA);
     setVal("o_gei_m", r.geiM, {signal:"both"}); setVal("o_gei_a", r.geiA, {signal:"both"});
@@ -766,17 +751,17 @@
     setVal("o_pmt2", r.pmtM, {text: cents(r.pmtM)});
 
     // Indicators
-    setVal("o_dscr", 0, {text: dscrText(r), band: bandClass(r.dscr, THRESHOLDS.dscr)});
-    setVal("o_coc_dp", 0, {text: isFinite(r.cocDp) ? pct(r.cocDp) : "—", band: bandClass(r.cocDp, THRESHOLDS.coc)});
+    setVal("o_dscr", 0, {text: dscrText(r)});
+    setVal("o_coc_dp", 0, {text: isFinite(r.cocDp) ? pct(r.cocDp) : "—"});
     setVal("o_coc_li", 0, {text: r.infinite || !isFinite(r.cocLi) || r.cocLi < 0 ? "∞" : pct(r.cocLi)});
     setVal("o_roi_dp", 0, {text: isFinite(r.roiDp) ? pct(r.roiDp) : "—"});
     setVal("o_roi_li", 0, {text: r.infinite || !isFinite(r.roiLi) || r.roiLi < 0 ? "∞" : pct(r.roiLi)});
     setVal("o_payback", 0, {text: paybackText(r)});
 
     // Verdict strip
-    setVal("vCashflow", r.cfAfterM, {band: cfBand});
-    setVal("vDSCR", 0, {text: dscrText(r), band: bandClass(r.dscr, THRESHOLDS.dscr)});
-    setVal("vCoC", 0, {text: isFinite(r.cocDp) ? pct(r.cocDp) : "—", band: bandClass(r.cocDp, THRESHOLDS.coc)});
+    setVal("vCashflow", r.cfAfterM, {signal:"both"});
+    setVal("vDSCR", 0, {text: dscrText(r)});
+    setVal("vCoC", 0, {text: isFinite(r.cocDp) ? pct(r.cocDp) : "—"});
     setVal("vPayment", 0, {text: cents(r.pmtM)});
 
     // Input warnings
@@ -802,9 +787,7 @@
     ];
     $("stressBody").innerHTML = scenarios.map(function(s){
       var sr = calc(s[1], false);
-      return "<tr><td>" + s[0] + "</td><td class=\"" + bandClass(sr.cfAfterM, THRESHOLDS.cashflowM) + "\">" +
-        cents(sr.cfAfterM) + "</td><td class=\"" + bandClass(sr.dscr, THRESHOLDS.dscr) + "\">" +
-        dscrText(sr) + "</td></tr>";
+      return "<tr><td>" + s[0] + "</td><td>" + cents(sr.cfAfterM) + "</td><td>" + dscrText(sr) + "</td></tr>";
     }).join("");
 
     // Schedule
@@ -907,9 +890,9 @@
     ["Gross rent / mo",                   function(r,v){ return {t: money(v.rent)}; }],
     ["NOI / mo",                          function(r,v){ return {t: money(r.noiM)}; }],
     ["Mortgage P+I / mo",                 function(r,v){ return {t: cents(r.pmtM)}; }],
-    ["Cash flow after reserves / mo",     function(r,v){ return {t: money(r.cfAfterM), c: bandClass(r.cfAfterM, THRESHOLDS.cashflowM)}; }],
-    ["DSCR",                              function(r,v){ return {t: dscrText(r), c: bandClass(r.dscr, THRESHOLDS.dscr)}; }],
-    ["Cash-on-cash (downpayment)",        function(r,v){ return {t: isFinite(r.cocDp) ? pct(r.cocDp) : "—", c: bandClass(r.cocDp, THRESHOLDS.coc)}; }],
+    ["Cash flow after reserves / mo",     function(r,v){ return {t: money(r.cfAfterM)}; }],
+    ["DSCR",                              function(r,v){ return {t: dscrText(r)}; }],
+    ["Cash-on-cash (downpayment)",        function(r,v){ return {t: isFinite(r.cocDp) ? pct(r.cocDp) : "—"}; }],
     ["ROI (downpayment)",                 function(r,v){ return {t: isFinite(r.roiDp) ? pct(r.roiDp) : "—"}; }],
     ["Time before return of investment",  function(r,v){ return {t: paybackText(r)}; }],
     ["Cash left in / downpayment",        function(r,v){ return {t: money(-r.cashLeftIn)}; }]
